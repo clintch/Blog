@@ -1,0 +1,365 @@
+1)
+Staging Table to get the Mail or Mobile Verification
+CREATE TABLE universal_login_stg (
+  stgUserId 		BIGINT 		NOT NULL AUTO_INCREMENT,
+  firstName 		VARCHAR(50) NOT NULL,
+  lastName 			VARCHAR(50) NOT NULL,
+  primaryMobile 	integer(15) NOT NULL,
+  primaryEmail 		VARCHAR(70) NOT NULL,
+  passwordHash 		VARCHAR(32) NOT NULL,
+  addDate 			DATETIME 	NOT NULL,
+  tokenNo			SMALLINT 	NOT NULL,
+  status			CHAR(1) 	NOT NULL,
+  PRIMARY KEY (userId)
+); 
+
+2)
+CREATE TABLE user_master (
+  userId 			BIGINT 	NOT NULL AUTO_INCREMENT,
+  firstName 		VARCHAR(50) NOT NULL,
+  middleName 		VARCHAR(50) NOT NULL,
+  lastName 			VARCHAR(50) NOT NULL,
+  primaryMobile 	BIGINT		NOT NULL,
+  secondaryMobile 	BIGINT		NOT NULL,
+  primaryEmail 		VARCHAR(70) NOT NULL,
+  secondaryEmail 	VARCHAR(70) NOT NULL,
+  Address1			VARCHAR(70) NOT NULL,
+  Address2			VARCHAR(70) NOT NULL,
+  streetName		VARCHAR(70) NOT NULL,
+  stateCode			CHAR(6) 	NOT NULL,
+  districtCode		CHAR(6) 	NOT NULL,
+  pinCode			BIGINT 		NOT NULL,
+  gender			CHAR(6) 	NOT NULL,		
+  occupationCode	CHAR(6) 	NOT NULL,	
+  addDate 			DATETIME 	NOT NULL,
+  intro 			TINYTEXT 	NOT NULL,
+  profile			TEXT 		NOT NULL,
+  authFlag			VARCHAR(70) NOT NULL,		
+  blogCount			BIGINT		NOT NULL,
+  followersCnt		BIGINT		NOT NULL,
+  followingCnt		BIGINT		NOT NULL,
+  status			CHAR(1) 	NOT NULL,
+  contactVerifyFlag TINYINT	  	NOT NULL,		
+  userRole			SMALLINT	NOT NULL,
+  adminRole			CHAR(1) 	NOT NULL , 
+  PRIMARY KEY (userId)
+)
+PARTITION BY RANGE (userId) (
+    PARTITION p0 VALUES LESS THAN (200000),
+    PARTITION p1 VALUES LESS THAN (400000),
+    PARTITION p2 VALUES LESS THAN (600000)
+);
+
+3)
+CREATE TABLE blog.universal_login (
+  userId 			BIGINT 		NOT NULL,
+  primaryMobile 	BIGINT 		NOT NULL,
+  secondaryMobile 	BIGINT		NOT NULL,
+  primaryEmail 		VARCHAR(70) NOT NULL,
+  secondaryEmail 	VARCHAR(70) NOT NULL,
+  passwordHash 		VARCHAR(32) NOT NULL,
+  addDate 			DATETIME 	NOT NULL,
+  registeredDate 	DATETIME 	NOT NULL,
+  lastLogin 		DATETIME 	NOT NULL,
+  failureCount		TINYINT		NOT NULL,
+  lastPwdChngDt 	DATETIME 	NOT NULL,
+  status			CHAR(1) 	NOT NULL,
+  PRIMARY KEY (userId)
+)  
+PARTITION BY RANGE (userId) (
+    PARTITION p0 VALUES LESS THAN (200000),
+    PARTITION p1 VALUES LESS THAN (400000),
+    PARTITION p2 VALUES LESS THAN (600000)
+);
+
+4)
+CREATE TABLE `blog`.`uni_login_ext_credentials` (
+  userId 			BIGINT 		NOT NULL ,
+  extLoginType		VARCHAR(15)	NOT NULL, 	--External Login Platforms FaceBook,Twitter,Linkden,gmail
+  addDate 			DATETIME 	NOT NULL,
+  registeredDate 	DATETIME 	NOT NULL,
+  lastLogin 		DATETIME 	NOT NULL,
+  status			CHAR(1) 	NOT NULL,
+  PRIMARY KEY (userId),
+    
+  
+5)
+CREATE TABLE blog.blog_post (
+  blogId		BIGINT 			NOT NULL AUTO_INCREMENT,
+  userId 		BIGINT 			NOT NULL,
+  parentId	 	BIGINT 			NOT NULL,
+  catId	 		BIGINT 			NOT NULL,
+  title 		VARCHAR(75) 	NOT NULL,
+  metaTitle 	VARCHAR(100)	NOT NULL,
+  slug 			VARCHAR(100) 	NOT NULL,
+  summary 		TINYTEXT 		NOT NULL,
+  published 	TINYINT 		NOT NULL,		0 = Private 1 = Public
+  createdAt 	DATETIME 		NOT NULL,
+  updatedAt 	DATETIME 		NOT NULL,
+  publishedAt 	DATETIME 		NOT NULL,	
+  replyCount	BIGINT 			NOT NULL,
+  likeCount		BIGINT 			NOT NULL,
+  viewCount		BIGINT 			NOT NULL, 
+  status		VARCHAR(75) 	NOT NULL,
+  authFlag		CHAR(3) 		NOT NULL,	"YES" --Authorization Required,"NOT"--Not Required --		
+  authUser		CHAR(75) 		NOT NULL,
+  authDate		DATETIME 		NOT NULL,
+  content 		TEXT			NOT NULL,
+  PRIMARY KEY (blogId),
+
+3)blog_post_meta
+
+CREATE TABLE `blog`.`blog_post_meta` (
+  metaId 		BIGINT 			NOT NULL AUTO_INCREMENT,
+  blogId 		BIGINT 			NOT NULL,
+  key 			VARCHAR(50) 	NOT NULL,
+  content 		TEXT 			NOT NULL,
+  PRIMARY KEY (metaId),
+  INDEX 	idx_meta_post (postId ASC),
+  UNIQUE INDEX uq_post_meta (postId ASC, key ASC),
+
+
+4)blog_post_comment
+CREATE TABLE `blog`.`blog_post_comment` (
+  id 			BIGINT 			NOT NULL AUTO_INCREMENT,
+  blogId 		BIGINT 			NOT NULL,
+  parentId	 	BIGINT 			NOT NULL,
+  userId 		BIGINT 			NOT NULL,
+  title 		VARCHAR(100) 	NOT NULL,
+  published 	TINYINT(1) 		NOT NULL DEFAULT 0,
+  createdAt 	DATETIME 		NOT NULL,
+  publishedAt 	DATETIME 		NOT NULL,
+  replyCount	BIGINT 			NOT NULL,
+  likeCount		BIGINT 			NOT NULL,
+  status		VARCHAR(75) 	NOT NULL,
+  authFlag		CHAR(3) 		NOT NULL,	"YES" --Authorization Required,"NOT"--Not Required --		
+  authUser		BIGINT 			NOT NULL,
+  authDate		DATETIME 		NOT NULL,
+	content	 	TEXT 			NOT NULL, 
+ PRIMARY KEY (id),
+  INDEX `idx_comment_post` (`postId` ASC),
+  CONSTRAINT `fk_comment_post`
+    FOREIGN KEY (`postId`)
+    REFERENCES `blog`.`post` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION);
+	
+5)blog_category_master
+CREATE TABLE `blog`.`blog_category_master` (
+  `catId` 			BIGINT 			NOT NULL AUTO_INCREMENT,
+  `parentCatId` 	BIGINT 			NOT NULL,
+  `title` 			VARCHAR(75) 	NOT NULL,
+  `metaTitle` 		VARCHAR(100)	NOT NULL,
+  `slug` 			VARCHAR(100) 	NOT NULL,
+  `content` 		TEXT 			NOT NULL,
+  PRIMARY KEY (`catId`));
+
+6)blog_post_category_map
+CREATE TABLE `blog`.`blog_post_category_map` (
+  blogId 		BIGINT NOT NULL,
+  categoryId 	BIGINT NOT NULL,
+  PRIMARY KEY (`postId`, `categoryId`),
+  INDEX `idx_pc_category` (`categoryId` ASC),
+  INDEX `idx_pc_post` (`postId` ASC),
+  
+  CREATE TABLE `blog_db`.`blog_post_category_map` (
+  blog_id 		BIGINT NOT NULL,
+  category_id 	BIGINT NOT NULL,
+  PRIMARY KEY (`blog_id`, `category_id`),
+  INDEX `idx_pc_category` (`category_id` ASC),
+  INDEX `idx_pc_blog` (`blog_id` ASC));
+ 
+7)
+blog_parameters
+CREATE TABLE `blog`.`blog_parameters` (
+  `Id` 			BIGINT NOT NULL,
+  `lastUserID` 	BIGINT NOT NULL,
+  `lastBlogID` 	BIGINT NOT NULL,
+  PRIMARY KEY (`postId`, `Id`),
+
+8)
+CREATE TABLE `blog`.`blog_videos_urls` (
+urlId		BIGINT 			NOT NULL AUTO_INCREMENT,
+blogId		BIGINT 			NOT NULL,
+url 		VARCHAR(150) 	NOT NULL,
+addDate		DATETIME 		NOT NULL,
+  PRIMARY KEY (`postId`, `urlId`),
+
+10)
+CREATE TABLE `blog`.`blog_photos` (
+	blogId		BIGINT 			NOT NULL,
+	photoBase64	VARCHAR(150) 	NOT NULL,
+	addDate		DATETIME 		NOT NULL,
+  PRIMARY KEY (`postId`, `urlId`),
+
+10)
+CREATE TABLE `blog`.`blog_user_achievements` (
+	achblogId	BIGINT 			NOT NULL AUTO_INCREMENT,
+	userId		BIGINT 			NOT NULL,
+	clubId		BIGINT 			NOT NULL,
+	achCategory	CHAR(6) 		NOT NULL,
+	start_date`	DATETIME 		NOT NULL,
+	end_date`	DATETIME 		NOT NULL,
+	addDate		DATETIME 		NOT NULL,
+	PRIMARY KEY (`achblogId`),
+
+11)
+CREATE TABLE `blog`.`blog_club_master` (
+	clubId			BIGINT 			NOT NULL AUTO_INCREMENT,
+	clubCategory	CHAR(7) 		NOT NULL,	CYCLE =  ByCycle ,BIKIE,"RUNNERS"
+	clubName		VARCHAR(50) 	NOT NULL,
+	start_date`		DATETIME 		NOT NULL,
+	end_date`		DATETIME 		NOT NULL,
+	addDate			DATETIME 		NOT NULL,
+	PRIMARY KEY (`clubId`),
+
+12)
+CREATE TABLE `blog`.`blog_club_usr_map` (
+	userId			BIGINT 			NOT NULL,
+	clubId			BIGINT 			NOT NULL,
+	start_date`		DATETIME 		NOT NULL,
+	end_date`		DATETIME 		NOT NULL,
+	addDate			DATETIME 		NOT NULL,
+	status		VARCHAR(75) 		NOT NULL,
+	PRIMARY KEY (userId ,`clubId`),
+
+13)
+CREATE TABLE `blog`.`blog_usr_followers_map` (
+	userId			BIGINT 			NOT NULL,
+	followerUsrId	BIGINT 			NOT NULL,
+	followType		CHAR(9) 		NOT NULL,	"FOLLOWER","FOLLOWING"
+	start_date`		DATETIME 		NOT NULL,
+	end_date`		DATETIME 		NOT NULL,
+	addDate			DATETIME 		NOT NULL,
+	status		VARCHAR(75) 		NOT NULL,
+	PRIMARY KEY (userId ,`followerUsrId`),
+	
+14)
+CREATE TABLE `blog`.`blog_user_roles_map` (
+	userId			BIGINT 			NOT NULL,
+	roleId			SMALLINT		NOT NULL,
+	addDate			DATETIME 		NOT NULL,
+	status		VARCHAR(75) 		NOT NULL,
+	PRIMARY KEY (userId ,`roleId`),	
+
+
+create  table state_master(
+	country_code  	char(3)  		not null,
+	state_code   	char(3)  		not null,
+	state_name_caps	varchar(100)  	not null,
+    state_name_reg	varchar(100)  	not null,
+	min_pin_prefix   int  			not null,
+	max_pin_prefix   int  			not null,
+	status   char(1)  				not null,
+	PRIMARY KEY (country_code ,state_code)
+)
+
+drop table pincode_master
+go
+create  table pincode_master(
+   country_code  	char(3)  		not null,
+   pincode   		MEDIUMINT  		not null,
+   state_code   	char(3)  		not null,
+   district_code   	char(3)  		not null,
+   PRIMARY KEY (country_code,pincode)
+)
+
+
+create  table district_master(
+country_code  	char(3)  		not null,
+district_code   char(3)  		not null,
+state_code  	char(3)  		not null,
+district_name   varchar(100) 	not null,
+status   		char(1) 		not null,
+PRIMARY KEY (country_code,district_code)
+)
+
+create  table ifsc_code_master_pop(
+bank_name  		varchar(255)  	not null,
+ifsc_code		char(15)  		not null,
+micr_code		char(15)  		not null,
+bank_br_name 	varchar(255) 	not null,
+bank_br_address	varchar(255) 	not null,
+contact_no		varchar(15) 	not null,
+city_name		varchar(255) 	not null,
+district_name	varchar(255) 	not null,
+state_name		varchar(255) 	not null,
+PRIMARY KEY (ifsc_code)
+)
+
+create  table ifsc_code_master_tmp(                       
+bank_name  		varchar(255)  	null,
+ifsc_code		char(15)  		null,
+micr_code		char(15)  		null,
+bank_br_name 	varchar(255) 	null,
+bank_br_address	varchar(255) 	null,    
+contact_no		varchar(15) 	null,
+city_name		varchar(255) 	null,
+district_name	varchar(255) 	null,
+state_name		varchar(255) 	null,
+district_code   char(3)  		null,
+state_code  	char(3)  		null,
+bank_code		char(10)  		null,
+PRIMARY KEY (ifsc_code)
+)
+
+
+/*
+
+UPDATE ifsc_code_master_tmp t1
+INNER JOIN ifsc_code_master_tmp t2 ON t2.ifsc_code = t1.ifsc_code
+SET t1.bank_code = substring(t2.ifsc_code,1,4)
+
+
+UPDATE ifsc_code_master_tmp set state_name = "MAHARASHTRA" where state_name="MH"
+UPDATE ifsc_code_master_tmp set state_name = "CHHATTISGARH" where state_name="CG"
+UPDATE ifsc_code_master_tmp set state_name = "ANDHRA PRADESH" where state_name="AP"
+UPDATE ifsc_code_master_tmp set state_name = "KARANATAKA" where state_name="KA"
+UPDATE ifsc_code_master_tmp set state_name = "TAMIL NADU" where state_name="TN"
+UPDATE ifsc_code_master_tmp set state_name = "RAJASTHAN" where state_name="RJ"
+UPDATE ifsc_code_master_tmp set state_name = "HARYANA" where state_name="CHANDIGARH UT"
+UPDATE ifsc_code_master_tmp set state_name = "GUJARAT" where district_name = "SOMNATH"
+UPDATE ifsc_code_master_tmp set state_name = "CHHATTISGARH" where state_name="JHAGRAKHAND COLLIERY"
+UPDATE ifsc_code_master_tmp set state_name = "WEST BENGAL" where district_name="MASAT"
+UPDATE ifsc_code_master_tmp set state_name = "GUJARAT" where district_name="AHMEDABAD"
+UPDATE ifsc_code_master_tmp set state_name = "CHHATTISGARH" where state_name="Chattisgarh"
+UPDATE ifsc_code_master_tmp set state_name = "KARNATAKA" where state_name="KARANATAKA"
+UPDATE ifsc_code_master_tmp set state_name = "CHHATTISGARH" where state_name="CHHATISHGARH"
+UPDATE ifsc_code_master_tmp set state_name = "WEST BENGAL" where state_name="WESTBENGAL"
+UPDATE ifsc_code_master_tmp set state_name = "Daman and Diu" where district_name="DAMAN"
+UPDATE ifsc_code_master_tmp set state_name = "DADRA AND NAGAR HAVELI" where state_name="DADRA"
+UPDATE ifsc_code_master_tmp set state_name = "PUNJAB" where state_name="PANJAB"
+
+
+
+
+
+UPDATE ifsc_code_master_tmp
+INNER JOIN district_master ON (ltrim(rtrim(ifsc_code_master_tmp.district_name)) = ltrim(rtrim(district_master.district_name)))
+SET ifsc_code_master_tmp.district_code = district_master.district_code
+
+ 
+*/
+
+
+ALTER TABLE blog_post_like 
+ADD CONSTRAINT uq_post_like UNIQUE(blog_id, user_id);
+
+
+ALTER TABLE blog_photos
+add CONSTRAINT FKmsi5qelkdfgegmeoh5tduu8n 
+FOREIGN KEY (blog_id) REFERENCES blog_post (blog_id)
+ON DELETE CASCADE; 
+
+
+ALTER TABLE blog_post_child_comment
+add CONSTRAINT blog_cmt_cnst 
+FOREIGN KEY (parent_id) REFERENCES blog_post_parent_comment (parent_id)
+ON DELETE CASCADE;
+
+ALTER TABLE blog_post_parent_comment
+add CONSTRAINT blog_pnt_cmt_cnst 
+FOREIGN KEY (blog_id) REFERENCES blog_post (blog_id)
+ON DELETE CASCADE;
+
+
